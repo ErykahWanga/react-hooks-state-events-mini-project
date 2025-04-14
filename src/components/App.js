@@ -1,52 +1,46 @@
 import React, { useState } from "react";
-import TaskList from "./components/TaskList";
-import CategoryFilter from "./components/CategoryFilter";
-import NewTaskForm from "./components/NewTaskForm";
+import TaskList from "./TaskList";
+import CategoryFilter from "./CategoryFilter";
+import NewTaskForm from "./NewTaskForm";
+import { CATEGORIES, TASKS } from "./data";
 
 function App() {
-  // State for tasks and filtered tasks
-  const [tasks, setTasks] = useState([
-    { text: "Buy groceries", category: "Shopping" },
-    { text: "Read a book", category: "Personal" },
-    { text: "Pay bills", category: "Finance" },
-  ]);
+  const [tasks, setTasks] = useState(TASKS);
+  const [selectedCategory, setSelectedCategory] = useState("All");
 
-  const [filteredTasks, setFilteredTasks] = useState(tasks);
+  const filteredTasks = selectedCategory === "All"
+    ? tasks
+    : tasks.filter(task => task.category === selectedCategory);
 
-  // Categories list
-  const categories = ["All", "Shopping", "Personal", "Finance"];
+  function handleDeleteTask(deletedTaskText) {
+    const updatedTasks = tasks.filter(task => task.text !== deletedTaskText);
+    setTasks(updatedTasks);
+  }
 
-  // Function to delete a task
-  const deleteTask = (taskToDelete) => {
-    setTasks(tasks.filter((task) => task !== taskToDelete));
-    setFilteredTasks(filteredTasks.filter((task) => task !== taskToDelete));
-  };
-
-  // Function to filter tasks by category
-  const filterTasks = (category) => {
-    if (category === "All") {
-      setFilteredTasks(tasks);
-    } else {
-      setFilteredTasks(tasks.filter((task) => task.category === category));
-    }
-  };
-
-  // Function to add a new task
-  const addTask = (newTask) => {
+  function handleAddTask(newTask) {
     setTasks([...tasks, newTask]);
-    setFilteredTasks([...filteredTasks, newTask]);
-  };
+  }
+
+  function handleCategoryChange(category) {
+    setSelectedCategory(category);
+  }
 
   return (
-    <div>
-      {/* Category filter */}
-      <CategoryFilter categories={categories} onCategorySelect={filterTasks} />
-
-      {/* Task list */}
-      <TaskList tasks={filteredTasks} onDelete={deleteTask} />
-
-      {/* New task form */}
-      <NewTaskForm categories={categories} onTaskFormSubmit={addTask} />
+    <div className="App">
+      <h1>My Task List</h1>
+      <CategoryFilter 
+        categories={CATEGORIES}
+        selectedCategory={selectedCategory}
+        onCategoryChange={handleCategoryChange}
+      />
+      <NewTaskForm 
+        categories={CATEGORIES}
+        onTaskFormSubmit={handleAddTask}
+      />
+      <TaskList 
+        tasks={filteredTasks}
+        onDeleteTask={handleDeleteTask}
+      />
     </div>
   );
 }
