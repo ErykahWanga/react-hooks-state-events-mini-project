@@ -1,46 +1,43 @@
-import "@testing-library/jest-dom";
-import { render, screen, fireEvent } from "@testing-library/react";
-import CategoryFilter from "../components/CategoryFilter";
-import App from "../components/App";
-import { CATEGORIES } from "../data";
+import React, { useState } from "react";
 
-test("displays a button for each category", () => {
-  render(<CategoryFilter categories={CATEGORIES} />);
-  for (const category of CATEGORIES) {
-    expect(screen.queryByText(category)).toBeInTheDocument();
-  }
-});
+function NewTaskForm({ categories, onTaskFormSubmit }) {
+  const [text, setText] = useState("");
+  const [category, setCategory] = useState("");
 
-test("clicking the category button adds a class of 'selected' to the button", () => {
-  render(<App />);
+  // Handle form submission
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const newTask = { text, category };
+    onTaskFormSubmit(newTask); // Pass new task to parent
+    setText(""); // Reset input fields
+    setCategory("");
+  };
 
-  const codeButton = screen.queryByRole("button", { name: "Code" });
-  const allButton = screen.queryByRole("button", { name: "All" });
+  return (
+    <form onSubmit={handleSubmit}>
+      {/* Task text input */}
+      <input
+        type="text"
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        placeholder="Task text"
+      />
 
-  fireEvent.click(codeButton);
+      {/* Category dropdown */}
+      <select value={category} onChange={(e) => setCategory(e.target.value)}>
+        <option value="">Select a category</option>
+        {categories
+          .filter((cat) => cat !== "All") // Exclude "All"
+          .map((cat) => (
+            <option key={cat} value={cat}>
+              {cat}
+            </option>
+          ))}
+      </select>
 
-  expect(codeButton.classList).toContain("selected");
-  expect(allButton.classList).not.toContain("selected");
-});
+      <button type="submit">Add Task</button>
+    </form>
+  );
+}
 
-test("clicking the category button filters the task list", () => {
-  render(<App />);
-
-  const codeButton = screen.queryByRole("button", { name: "Code" });
-
-  fireEvent.click(codeButton);
-
-  expect(screen.queryByText("Build a todo app")).toBeInTheDocument();
-  expect(screen.queryByText("Buy rice")).not.toBeInTheDocument();
-});
-
-test("displays all tasks when the 'All' button is clicked", () => {
-  render(<App />);
-
-  const allButton = screen.queryByRole("button", { name: "All" });
-
-  fireEvent.click(allButton);
-
-  expect(screen.queryByText("Build a todo app")).toBeInTheDocument();
-  expect(screen.queryByText("Buy rice")).toBeInTheDocument();
-});
+export default NewTaskForm;

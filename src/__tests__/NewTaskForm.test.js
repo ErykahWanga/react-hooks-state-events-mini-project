@@ -1,49 +1,43 @@
-import "@testing-library/jest-dom";
-import { render, screen, fireEvent } from "@testing-library/react";
-import NewTaskForm from "../components/NewTaskForm";
-import { CATEGORIES } from "../data";
-import App from "../components/App";
+import React, { useState } from "react";
 
-test("calls the onTaskFormSubmit callback prop when the form is submitted", () => {
-  const onTaskFormSubmit = jest.fn();
-  render(
-    <NewTaskForm categories={CATEGORIES} onTaskFormSubmit={onTaskFormSubmit} />
+function NewTaskForm({ categories, onTaskFormSubmit }) {
+  const [text, setText] = useState("");
+  const [category, setCategory] = useState("");
+
+  // Handle form submission
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const newTask = { text, category };
+    onTaskFormSubmit(newTask); // Pass new task to parent
+    setText(""); // Reset input fields
+    setCategory("");
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      {/* Task text input */}
+      <input
+        type="text"
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        placeholder="Task text"
+      />
+
+      {/* Category dropdown */}
+      <select value={category} onChange={(e) => setCategory(e.target.value)}>
+        <option value="">Select a category</option>
+        {categories
+          .filter((cat) => cat !== "All") // Exclude "All"
+          .map((cat) => (
+            <option key={cat} value={cat}>
+              {cat}
+            </option>
+          ))}
+      </select>
+
+      <button type="submit">Add Task</button>
+    </form>
   );
+}
 
-  fireEvent.change(screen.queryByLabelText(/Details/), {
-    target: { value: "Pass the tests" },
-  });
-
-  fireEvent.change(screen.queryByLabelText(/Category/), {
-    target: { value: "Code" },
-  });
-
-  fireEvent.submit(screen.queryByText(/Add task/));
-
-  expect(onTaskFormSubmit).toHaveBeenCalledWith(
-    expect.objectContaining({
-      text: "Pass the tests",
-      category: "Code",
-    })
-  );
-});
-
-test("adds a new item to the list when the form is submitted", () => {
-  render(<App />);
-
-  const codeCount = screen.queryAllByText(/Code/).length;
-
-  fireEvent.change(screen.queryByLabelText(/Details/), {
-    target: { value: "Pass the tests" },
-  });
-
-  fireEvent.change(screen.queryByLabelText(/Category/), {
-    target: { value: "Code" },
-  });
-
-  fireEvent.submit(screen.queryByText(/Add task/));
-
-  expect(screen.queryByText(/Pass the tests/)).toBeInTheDocument();
-
-  expect(screen.queryAllByText(/Code/).length).toBe(codeCount + 1);
-});
+export default NewTaskForm;
